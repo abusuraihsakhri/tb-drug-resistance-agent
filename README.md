@@ -92,9 +92,24 @@ python cli.py --input data.csv
 
 * **Zero-PHI Outbound Interceptor:** Active AST and regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers.
 * **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation and state transition.
+* **Secure Key Management:** Audit trail uses `AUDIT_SECRET_KEY` environment variable or generates a secure ephemeral key if not set.
 * **Air-Gapped LLM Reasoning Adapter:** Agnostic integration for local Ollama instances (`llama3`, `mistral`), Claude 3.5 Sonnet, GPT-4o, and deterministic test mocks.
 * **Active Learning Bayesian Calibration:** Dynamic tracker updating worker reliability weights and monitoring Brier calibration drift.
 * **FastAPI & Prometheus Telemetry:** Exposes OpenAPI 3.1 REST endpoints and operational Prometheus metrics (`/metrics`).
+
+### Security Configuration
+
+Set the `AUDIT_SECRET_KEY` environment variable for persistent audit integrity across restarts:
+
+```bash
+# Linux/macOS
+export AUDIT_SECRET_KEY="your-secure-random-key"
+
+# Windows
+set AUDIT_SECRET_KEY=your-secure-random-key
+```
+
+If not set, a secure ephemeral key is generated at runtime (audit trail will not persist across restarts).
 
 ---
 
@@ -110,6 +125,27 @@ Execute high-throughput batch simulation benchmarks:
 
 ```bash
 python simulator.py --tasks 1000 --concurrency 8
+```
+
+### Additional CLI Commands (tb_drug_resistance_agent package)
+
+The `tb_drug_resistance_agent` package provides additional enterprise CLI commands:
+
+```bash
+# Run single case clinical audit
+python -m tb_drug_resistance_agent.cli audit --case-id CASE-001 --primary 26.2 --secondary 12.5 --stat --status DISCORDANT
+
+# Query the supervisory chat
+python -m tb_drug_resistance_agent.cli chat "What is the system status?"
+
+# Batch process CSV records
+python -m tb_drug_resistance_agent.cli batch -i sample.csv -o results.csv
+
+# Verify audit trail integrity
+python -m tb_drug_resistance_agent.cli verify-audit
+
+# Launch FastAPI REST server
+python -m tb_drug_resistance_agent.cli serve --host 127.0.0.1 --port 8000
 ```
 
 ---

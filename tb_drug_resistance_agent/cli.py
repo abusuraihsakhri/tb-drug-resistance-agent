@@ -37,7 +37,18 @@ def main(argv=None):
     p_serve.add_argument("--host", default="127.0.0.1")
     p_serve.add_argument("--port", type=int, default=8000)
 
+    # Verify Audit
+    subparsers.add_parser("verify-audit", help="Verify HMAC-SHA256 audit trail integrity")
+
     args = parser.parse_args(argv)
+
+    if args.command == "verify-audit":
+        from agents.base import AuditLogger
+        verified = AuditLogger.verify_integrity()
+        trail_len = len(AuditLogger.get_trail())
+        print(f"Audit trail integrity: {'VERIFIED' if verified else 'COMPROMISED'}")
+        print(f"Audit blocks: {trail_len}")
+        return 0
 
     if args.command == "audit":
         case = ClinicalCasePayload(

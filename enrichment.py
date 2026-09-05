@@ -3,17 +3,16 @@ Enrichment Feature Implementation for tb-drug-resistance-agent.
 Generated based on domain-specific requirements in specifications.
 """
 from dataclasses import dataclass, field
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional
 import datetime
-import math
-import json
 
 # =============================================================================
-# 1. WHO 2022 RAPID DRUG RESISTANCE TESTING ALGORITHM
+# BASE RESULT & ENGINE (shared by all enrichment modules)
 # =============================================================================
 @dataclass
-class Who2022RapidDrugResistanceTestingAlgorithmEngineResult:
-    feature_name: str = "WHO 2022 Rapid Drug Resistance Testing Algorithm"
+class EnrichmentResult:
+    """Shared result dataclass for all enrichment engines."""
+    feature_name: str = "Enrichment Engine"
     status: str = "OPTIMAL"
     score: float = 0.0
     metrics: Dict[str, Any] = field(default_factory=dict)
@@ -21,16 +20,19 @@ class Who2022RapidDrugResistanceTestingAlgorithmEngineResult:
     recommendations: List[str] = field(default_factory=list)
     timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
-class Who2022RapidDrugResistanceTestingAlgorithmEngine:
+
+class ThresholdEngine:
     """
-    WHO 2022 Rapid Drug Resistance Testing Algorithm: **Objective**: Embed WHO consolidated guidelines on TB resistance testing into specimen routing logic.
+    Parameterized threshold-based evaluation engine.
+    Used by all domain-specific enrichment modules.
     """
-    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
+    def __init__(self, name: str, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
+        self.name = name
         self.threshold = threshold
         self.config = config or {}
-        self.history: List[Who2022RapidDrugResistanceTestingAlgorithmEngineResult] = []
+        self.history: List[EnrichmentResult] = []
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> Who2022RapidDrugResistanceTestingAlgorithmEngineResult:
+    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> EnrichmentResult:
         alerts = []
         recs = []
         status = "OPTIMAL"
@@ -38,17 +40,17 @@ class Who2022RapidDrugResistanceTestingAlgorithmEngine:
 
         if primary_value > self.threshold * 2:
             status = "CRITICAL_ALERT"
-            alerts.append(f"WHO 2022 Rapid Drug Resistance Testing Algorithm: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
+            alerts.append(f"{self.name}: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
             recs.append("Initiate immediate protocol review and escalate to attending lead.")
         elif primary_value > self.threshold:
             status = "WARNING"
-            alerts.append(f"WHO 2022 Rapid Drug Resistance Testing Algorithm: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
+            alerts.append(f"{self.name}: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
             recs.append("Increase monitoring frequency and perform secondary verification.")
         else:
             recs.append("Parameters nominal under standard operating bounds.")
 
-        res = Who2022RapidDrugResistanceTestingAlgorithmEngineResult(
-            feature_name="WHO 2022 Rapid Drug Resistance Testing Algorithm",
+        res = EnrichmentResult(
+            feature_name=self.name,
             status=status,
             score=score,
             metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
@@ -58,355 +60,88 @@ class Who2022RapidDrugResistanceTestingAlgorithmEngine:
         self.history.append(res)
         return res
 
+
 # =============================================================================
-# 2. MDR-TB REGIMEN DURATION CALCULATOR
+# DOMAIN-SPECIFIC ENGINES (thin wrappers around ThresholdEngine)
 # =============================================================================
-@dataclass
-class MdrtbRegimenDurationCalculatorResult:
-    feature_name: str = "MDR-TB Regimen Duration Calculator"
-    status: str = "OPTIMAL"
-    score: float = 0.0
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    alerts: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
+class Who2022RapidDrugResistanceTestingAlgorithmEngine:
+    """WHO 2022 Rapid Drug Resistance Testing Algorithm: Embed WHO consolidated guidelines on TB resistance testing into specimen routing logic."""
+    def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
+        self._engine = ThresholdEngine("WHO 2022 Rapid Drug Resistance Testing Algorithm", threshold, config)
+        self.history = self._engine.history
+
+    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> EnrichmentResult:
+        return self._engine.evaluate(primary_value, secondary_value, **kwargs)
+
 
 class MdrtbRegimenDurationCalculator:
-    """
-    MDR-TB Regimen Duration Calculator: **Objective**: Implement BPaL and shorter MDR-TB regimen duration calculators.
-    """
+    """MDR-TB Regimen Duration Calculator: Implement BPaL and shorter MDR-TB regimen duration calculators."""
     def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
-        self.threshold = threshold
-        self.config = config or {}
-        self.history: List[MdrtbRegimenDurationCalculatorResult] = []
+        self._engine = ThresholdEngine("MDR-TB Regimen Duration Calculator", threshold, config)
+        self.history = self._engine.history
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> MdrtbRegimenDurationCalculatorResult:
-        alerts = []
-        recs = []
-        status = "OPTIMAL"
-        score = round(float(primary_value), 3)
+    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> EnrichmentResult:
+        return self._engine.evaluate(primary_value, secondary_value, **kwargs)
 
-        if primary_value > self.threshold * 2:
-            status = "CRITICAL_ALERT"
-            alerts.append(f"MDR-TB Regimen Duration Calculator: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
-            recs.append("Initiate immediate protocol review and escalate to attending lead.")
-        elif primary_value > self.threshold:
-            status = "WARNING"
-            alerts.append(f"MDR-TB Regimen Duration Calculator: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
-            recs.append("Increase monitoring frequency and perform secondary verification.")
-        else:
-            recs.append("Parameters nominal under standard operating bounds.")
-
-        res = MdrtbRegimenDurationCalculatorResult(
-            feature_name="MDR-TB Regimen Duration Calculator",
-            status=status,
-            score=score,
-            metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
-            alerts=alerts,
-            recommendations=recs
-        )
-        self.history.append(res)
-        return res
-
-# =============================================================================
-# 3. DRUG-DRUG INTERACTION MATRIX FOR TB MEDICINES
-# =============================================================================
-@dataclass
-class DrugdrugInteractionMatrixForTbMedicinesEngineResult:
-    feature_name: str = "Drug-Drug Interaction Matrix for TB Medicines"
-    status: str = "OPTIMAL"
-    score: float = 0.0
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    alerts: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
 class DrugdrugInteractionMatrixForTbMedicinesEngine:
-    """
-    Drug-Drug Interaction Matrix for TB Medicines: **Objective**: Flag dangerous interactions between MDR-TB drugs and concurrent medications.
-    """
+    """Drug-Drug Interaction Matrix for TB Medicines: Flag dangerous interactions between MDR-TB drugs and concurrent medications."""
     def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
-        self.threshold = threshold
-        self.config = config or {}
-        self.history: List[DrugdrugInteractionMatrixForTbMedicinesEngineResult] = []
+        self._engine = ThresholdEngine("Drug-Drug Interaction Matrix for TB Medicines", threshold, config)
+        self.history = self._engine.history
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> DrugdrugInteractionMatrixForTbMedicinesEngineResult:
-        alerts = []
-        recs = []
-        status = "OPTIMAL"
-        score = round(float(primary_value), 3)
+    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> EnrichmentResult:
+        return self._engine.evaluate(primary_value, secondary_value, **kwargs)
 
-        if primary_value > self.threshold * 2:
-            status = "CRITICAL_ALERT"
-            alerts.append(f"Drug-Drug Interaction Matrix for TB Medicines: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
-            recs.append("Initiate immediate protocol review and escalate to attending lead.")
-        elif primary_value > self.threshold:
-            status = "WARNING"
-            alerts.append(f"Drug-Drug Interaction Matrix for TB Medicines: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
-            recs.append("Increase monitoring frequency and perform secondary verification.")
-        else:
-            recs.append("Parameters nominal under standard operating bounds.")
-
-        res = DrugdrugInteractionMatrixForTbMedicinesEngineResult(
-            feature_name="Drug-Drug Interaction Matrix for TB Medicines",
-            status=status,
-            score=score,
-            metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
-            alerts=alerts,
-            recommendations=recs
-        )
-        self.history.append(res)
-        return res
-
-# =============================================================================
-# 4. GENOMIC SURVEILLANCE FEED INTEGRATION
-# =============================================================================
-@dataclass
-class GenomicSurveillanceFeedIntegrationEngineResult:
-    feature_name: str = "Genomic Surveillance Feed Integration"
-    status: str = "OPTIMAL"
-    score: float = 0.0
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    alerts: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
 class GenomicSurveillanceFeedIntegrationEngine:
-    """
-    Genomic Surveillance Feed Integration: **Objective**: Ingest WGS results to track resistance mutations at population level.
-    """
+    """Genomic Surveillance Feed Integration: Ingest WGS results to track resistance mutations at population level."""
     def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
-        self.threshold = threshold
-        self.config = config or {}
-        self.history: List[GenomicSurveillanceFeedIntegrationEngineResult] = []
+        self._engine = ThresholdEngine("Genomic Surveillance Feed Integration", threshold, config)
+        self.history = self._engine.history
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> GenomicSurveillanceFeedIntegrationEngineResult:
-        alerts = []
-        recs = []
-        status = "OPTIMAL"
-        score = round(float(primary_value), 3)
+    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> EnrichmentResult:
+        return self._engine.evaluate(primary_value, secondary_value, **kwargs)
 
-        if primary_value > self.threshold * 2:
-            status = "CRITICAL_ALERT"
-            alerts.append(f"Genomic Surveillance Feed Integration: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
-            recs.append("Initiate immediate protocol review and escalate to attending lead.")
-        elif primary_value > self.threshold:
-            status = "WARNING"
-            alerts.append(f"Genomic Surveillance Feed Integration: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
-            recs.append("Increase monitoring frequency and perform secondary verification.")
-        else:
-            recs.append("Parameters nominal under standard operating bounds.")
-
-        res = GenomicSurveillanceFeedIntegrationEngineResult(
-            feature_name="Genomic Surveillance Feed Integration",
-            status=status,
-            score=score,
-            metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
-            alerts=alerts,
-            recommendations=recs
-        )
-        self.history.append(res)
-        return res
-
-# =============================================================================
-# 5. SPUTUM CULTURE CONVERSION TRACKER
-# =============================================================================
-@dataclass
-class SputumCultureConversionTrackerResult:
-    feature_name: str = "Sputum Culture Conversion Tracker"
-    status: str = "OPTIMAL"
-    score: float = 0.0
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    alerts: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
 class SputumCultureConversionTracker:
-    """
-    Sputum Culture Conversion Tracker: **Objective**: Monitor serial sputum culture results and flag delayed conversion.
-    """
+    """Sputum Culture Conversion Tracker: Monitor serial sputum culture results and flag delayed conversion."""
     def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
-        self.threshold = threshold
-        self.config = config or {}
-        self.history: List[SputumCultureConversionTrackerResult] = []
+        self._engine = ThresholdEngine("Sputum Culture Conversion Tracker", threshold, config)
+        self.history = self._engine.history
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> SputumCultureConversionTrackerResult:
-        alerts = []
-        recs = []
-        status = "OPTIMAL"
-        score = round(float(primary_value), 3)
+    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> EnrichmentResult:
+        return self._engine.evaluate(primary_value, secondary_value, **kwargs)
 
-        if primary_value > self.threshold * 2:
-            status = "CRITICAL_ALERT"
-            alerts.append(f"Sputum Culture Conversion Tracker: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
-            recs.append("Initiate immediate protocol review and escalate to attending lead.")
-        elif primary_value > self.threshold:
-            status = "WARNING"
-            alerts.append(f"Sputum Culture Conversion Tracker: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
-            recs.append("Increase monitoring frequency and perform secondary verification.")
-        else:
-            recs.append("Parameters nominal under standard operating bounds.")
-
-        res = SputumCultureConversionTrackerResult(
-            feature_name="Sputum Culture Conversion Tracker",
-            status=status,
-            score=score,
-            metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
-            alerts=alerts,
-            recommendations=recs
-        )
-        self.history.append(res)
-        return res
-
-# =============================================================================
-# 6. TB-IRIS RISK STRATIFICATION
-# =============================================================================
-@dataclass
-class TbirisRiskStratificationEngineResult:
-    feature_name: str = "TB-IRIS Risk Stratification"
-    status: str = "OPTIMAL"
-    score: float = 0.0
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    alerts: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
 class TbirisRiskStratificationEngine:
-    """
-    TB-IRIS Risk Stratification: **Objective**: Compute TB-IRIS risk scores for patients initiating ART during TB treatment.
-    """
+    """TB-IRIS Risk Stratification: Compute TB-IRIS risk scores for patients initiating ART during TB treatment."""
     def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
-        self.threshold = threshold
-        self.config = config or {}
-        self.history: List[TbirisRiskStratificationEngineResult] = []
+        self._engine = ThresholdEngine("TB-IRIS Risk Stratification", threshold, config)
+        self.history = self._engine.history
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> TbirisRiskStratificationEngineResult:
-        alerts = []
-        recs = []
-        status = "OPTIMAL"
-        score = round(float(primary_value), 3)
+    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> EnrichmentResult:
+        return self._engine.evaluate(primary_value, secondary_value, **kwargs)
 
-        if primary_value > self.threshold * 2:
-            status = "CRITICAL_ALERT"
-            alerts.append(f"TB-IRIS Risk Stratification: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
-            recs.append("Initiate immediate protocol review and escalate to attending lead.")
-        elif primary_value > self.threshold:
-            status = "WARNING"
-            alerts.append(f"TB-IRIS Risk Stratification: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
-            recs.append("Increase monitoring frequency and perform secondary verification.")
-        else:
-            recs.append("Parameters nominal under standard operating bounds.")
-
-        res = TbirisRiskStratificationEngineResult(
-            feature_name="TB-IRIS Risk Stratification",
-            status=status,
-            score=score,
-            metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
-            alerts=alerts,
-            recommendations=recs
-        )
-        self.history.append(res)
-        return res
-
-# =============================================================================
-# 7. CONTACT SCREENING AUTOMATION
-# =============================================================================
-@dataclass
-class ContactScreeningAutomationEngineResult:
-    feature_name: str = "Contact Screening Automation"
-    status: str = "OPTIMAL"
-    score: float = 0.0
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    alerts: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
 class ContactScreeningAutomationEngine:
-    """
-    Contact Screening Automation: **Objective**: Generate contact screening recommendations for MDR/XDR-TB index cases.
-    """
+    """Contact Screening Automation: Generate contact screening recommendations for MDR/XDR-TB index cases."""
     def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
-        self.threshold = threshold
-        self.config = config or {}
-        self.history: List[ContactScreeningAutomationEngineResult] = []
+        self._engine = ThresholdEngine("Contact Screening Automation", threshold, config)
+        self.history = self._engine.history
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> ContactScreeningAutomationEngineResult:
-        alerts = []
-        recs = []
-        status = "OPTIMAL"
-        score = round(float(primary_value), 3)
+    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> EnrichmentResult:
+        return self._engine.evaluate(primary_value, secondary_value, **kwargs)
 
-        if primary_value > self.threshold * 2:
-            status = "CRITICAL_ALERT"
-            alerts.append(f"Contact Screening Automation: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
-            recs.append("Initiate immediate protocol review and escalate to attending lead.")
-        elif primary_value > self.threshold:
-            status = "WARNING"
-            alerts.append(f"Contact Screening Automation: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
-            recs.append("Increase monitoring frequency and perform secondary verification.")
-        else:
-            recs.append("Parameters nominal under standard operating bounds.")
-
-        res = ContactScreeningAutomationEngineResult(
-            feature_name="Contact Screening Automation",
-            status=status,
-            score=score,
-            metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
-            alerts=alerts,
-            recommendations=recs
-        )
-        self.history.append(res)
-        return res
-
-# =============================================================================
-# 8. PEDIATRIC TB DOSING ADVISOR
-# =============================================================================
-@dataclass
-class PediatricTbDosingAdvisorEngineResult:
-    feature_name: str = "Pediatric TB Dosing Advisor"
-    status: str = "OPTIMAL"
-    score: float = 0.0
-    metrics: Dict[str, Any] = field(default_factory=dict)
-    alerts: List[str] = field(default_factory=list)
-    recommendations: List[str] = field(default_factory=list)
-    timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
 class PediatricTbDosingAdvisorEngine:
-    """
-    Pediatric TB Dosing Advisor: **Objective**: Provide age/weight-based TB drug dosing per WHO guidelines.
-    """
+    """Pediatric TB Dosing Advisor: Provide age/weight-based TB drug dosing per WHO guidelines."""
     def __init__(self, threshold: float = 1.0, config: Optional[Dict[str, Any]] = None):
-        self.threshold = threshold
-        self.config = config or {}
-        self.history: List[PediatricTbDosingAdvisorEngineResult] = []
+        self._engine = ThresholdEngine("Pediatric TB Dosing Advisor", threshold, config)
+        self.history = self._engine.history
 
-    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> PediatricTbDosingAdvisorEngineResult:
-        alerts = []
-        recs = []
-        status = "OPTIMAL"
-        score = round(float(primary_value), 3)
-
-        if primary_value > self.threshold * 2:
-            status = "CRITICAL_ALERT"
-            alerts.append(f"Pediatric TB Dosing Advisor: Primary value {primary_value:.2f} breached critical threshold ({self.threshold * 2:.2f})")
-            recs.append("Initiate immediate protocol review and escalate to attending lead.")
-        elif primary_value > self.threshold:
-            status = "WARNING"
-            alerts.append(f"Pediatric TB Dosing Advisor: Value {primary_value:.2f} exceeds baseline threshold ({self.threshold:.2f})")
-            recs.append("Increase monitoring frequency and perform secondary verification.")
-        else:
-            recs.append("Parameters nominal under standard operating bounds.")
-
-        res = PediatricTbDosingAdvisorEngineResult(
-            feature_name="Pediatric TB Dosing Advisor",
-            status=status,
-            score=score,
-            metrics={"primary": primary_value, "secondary": secondary_value, **kwargs},
-            alerts=alerts,
-            recommendations=recs
-        )
-        self.history.append(res)
-        return res
+    def evaluate(self, primary_value: float, secondary_value: float = 0.0, **kwargs) -> EnrichmentResult:
+        return self._engine.evaluate(primary_value, secondary_value, **kwargs)
 
 # =============================================================================
 # COMPOSITE ENRICHMENT SUITE
