@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "tb-drug-resistance-engine"
 version = "2.0.0"
-description = "TBDrug-Resistance Sentinel: Molecular & Phenotypic MDR/XDR-TB Regimen Planner"
+description = "Research-only tuberculosis DST resistance classification and demonstrations"
 readme = "README.md"
 authors = [{ name = "Dr. Abu Suraih Sakhri", email = "abusuraih@example.com" }]
 license = { text = "MIT" }
@@ -13,10 +13,10 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-    "Topic :: Scientific/Engineering :: Medical Science Apps.",
+    "Topic :: Scientific/Engineering :: Medical Science Apps",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 dependencies = ["pydantic>=2.0,<3"]
 
 [project.optional-dependencies]
@@ -28,7 +28,7 @@ tb-drug-resistance-engine = "tb_drug_resistance_agent.cli:main"
 
 [project.urls]
 Homepage = "https://github.com/abusuraihsakhri/tb-drug-resistance-agent"
-Repository = "https://github.com/abusuraihsakhri/tb-drug-resistance-engine.git"
+Repository = "https://github.com/abusuraihsakhri/tb-drug-resistance-agent.git"
 
 [tool.setuptools]
 py-modules = ["tb_resistance", "enrichment", "simulator", "cli", "tb_resistance_app", "tb_drug_resistance_agent_app"]
