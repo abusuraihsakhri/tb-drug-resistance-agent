@@ -74,7 +74,7 @@ def main(argv=None):
         dossier = coordinator.process_case(case)
         print("=" * 80)
         print(f"  TBDRUG-RESISTANCE SENTINEL: MOLECULAR & PHENOTYPIC MDR/XDR-TB REGIMEN PLANNER")
-        print(f"  Domain: Infectious Diseases | Standard: IDSA / SHEA 2024 Antimicrobial Stewardship")
+        print(f"  Domain: Infectious Diseases | Standard: DEMONSTRATION ONLY - no guideline validation")
         print(f"  Case: {dossier['case_id']} | Status: [{dossier['overall_status']}] | Total Alerts: {dossier['total_alerts']}")
         print("=" * 80)
         for a in dossier["alerts"]:
