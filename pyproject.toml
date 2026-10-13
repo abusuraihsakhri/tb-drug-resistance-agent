@@ -17,11 +17,21 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
 ]
 requires-python = ">=3.9"
-dependencies = []
+dependencies = ["pydantic>=2.0,<3"]
+
+[project.optional-dependencies]
+api = ["fastapi>=0.110,<1", "uvicorn>=0.29,<1"]
+test = ["pytest>=8,<10"]
 
 [project.scripts]
 tb-drug-resistance-engine = "tb_drug_resistance_agent.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/abusuraihsakhri/tb-drug-resistance-engine"
+Homepage = "https://github.com/abusuraihsakhri/tb-drug-resistance-agent"
 Repository = "https://github.com/abusuraihsakhri/tb-drug-resistance-engine.git"
+
+[tool.setuptools]
+py-modules = ["tb_resistance", "enrichment", "simulator", "cli", "tb_resistance_app", "tb_drug_resistance_agent_app"]
+
+[tool.setuptools.packages.find]
+include = ["agents*", "tb_drug_resistance_agent*"]
