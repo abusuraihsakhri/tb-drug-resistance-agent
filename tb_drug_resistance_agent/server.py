@@ -14,7 +14,7 @@ def create_app():
 
         app = FastAPI(
             title="TBDrug-Resistance Sentinel: Molecular & Phenotypic MDR/XDR-TB Regimen Planner",
-            description="Evaluates GeneXpert rpoB mutations, katG/inhA isoniazid mutations, and gyrA/rrs second-line resistance to assemble WHO MDR-TB regimens.",
+            description="Generic threshold demonstration API. Does not interpret TB mutations or recommend treatment.",
             version="2.0.0-PRO",
         )
 

@@ -1,7 +1,7 @@
 """
 Pydantic v2 schemas and data definitions for Tb Drug Resistance Agent.
 Domain: Antimicrobial Stewardship & Microbiology
-Standard: CLSI M100 / EUCAST / CDC NHSN Guidelines
+Standard: DEMONSTRATION ONLY - no guideline validation
 """
 import datetime
 from enum import Enum
@@ -39,7 +39,7 @@ class AgentAlert(BaseModel):
     summary: str
     technical_details: str
     actionable_remediation: str
-    standard_reference: str = "CLSI M100 / EUCAST / CDC NHSN Guidelines"
+    standard_reference: str = "DEMONSTRATION ONLY - no guideline validation"
     timestamp: str = Field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
@@ -57,7 +57,7 @@ class ConsensusDossier(BaseModel):
     total_alerts: int
     critical_alerts_count: int
     alerts: List[AgentAlert]
-    standard_reference: str = "CLSI M100 / EUCAST / CDC NHSN Guidelines"
+    standard_reference: str = "DEMONSTRATION ONLY - no guideline validation"
     consensus_summary: str
     audit_hash: str
     timestamp: str = Field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())

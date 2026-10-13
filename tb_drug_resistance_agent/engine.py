@@ -1,7 +1,7 @@
 """
 Clinical Algorithmic Engine & Guideline Rules for TBDrug-Resistance Sentinel: Molecular & Phenotypic MDR/XDR-TB Regimen Planner.
 Domain: Infectious Diseases
-Standard: IDSA / SHEA 2024 Antimicrobial Stewardship
+Standard: DEMONSTRATION ONLY - no guideline validation
 """
 import math
 from typing import Dict, Any, List, Optional
@@ -9,7 +9,7 @@ from .models import ClinicalCasePayload, AgentAlert, UrgencyLevel, ClinicalInteg
 
 
 class ClinicalDomainEngine:
-    GUIDELINE = "IDSA / SHEA 2024 Antimicrobial Stewardship"
+    GUIDELINE = "DEMONSTRATION ONLY - no guideline validation"
     PRIMARY_BASELINE_LIMIT = 20.0
     SECONDARY_ALERT_LIMIT = 10.0
 
@@ -18,8 +18,8 @@ class ClinicalDomainEngine:
         if value > cls.PRIMARY_BASELINE_LIMIT:
             return {
                 "title": "Primary Metric Threshold Exceeded",
-                "finding": f"Observed value ({value:.2f}) exceeds IDSA / SHEA 2024 Antimicrobial Stewardship clinical baseline limit ({cls.PRIMARY_BASELINE_LIMIT:.1f}).",
-                "recommendation": "Perform immediate secondary verification and calibration review.",
+                "finding": f"Observed value ({value:.2f}) exceeds the demonstration-only reference value ({cls.PRIMARY_BASELINE_LIMIT:.1f}).",
+                "recommendation": "Demo flag only; review the configured metric threshold.",
             }
         return None
 
@@ -29,7 +29,7 @@ class ClinicalDomainEngine:
             return {
                 "title": "STAT Kinetic Escalation Triggered",
                 "finding": f"Kinetic parameter ({value:.2f}) with STAT={is_stat} requires prioritized supervision.",
-                "recommendation": "Activate closed-loop verbal clinician notification protocol per Joint Commission standards.",
+                "recommendation": "Demonstration flag only; it is not a clinical notification trigger.",
             }
         return None
 
@@ -40,6 +40,6 @@ class ClinicalDomainEngine:
             return {
                 "title": "Phenotypic / Biomarker Discordance Identified",
                 "finding": f"Status flag '{status_flag}' indicates divergence from standard diagnostic concordance.",
-                "recommendation": f"Order reflex confirmatory testing per IDSA / SHEA 2024 Antimicrobial Stewardship clinical recommendations.",
+                "recommendation": f"Demo status flag only; confirmation depends on validated laboratory protocols.",
             }
         return None

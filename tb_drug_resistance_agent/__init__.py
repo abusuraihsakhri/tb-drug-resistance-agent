@@ -1,5 +1,5 @@
 """
 TBDrug-Resistance Sentinel: Molecular & Phenotypic MDR/XDR-TB Regimen Planner
-Evaluates GeneXpert rpoB mutations, katG/inhA isoniazid mutations, and gyrA/rrs second-line resistance to assemble WHO MDR-TB regimens.
+Generic numerical threshold demonstration; no molecular interpretation or regimen selection.
 """
 __version__ = "2.0.0-PRO"

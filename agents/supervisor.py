@@ -75,5 +75,5 @@ class SystemSupervisor:
 
     def query_supervisory_chat(self, query: str) -> str:
         PHIGuard.assert_no_phi(query)
-        prompt = f"Supervisor inquiry for Tb Drug Resistance Agent under CLSI M100 / EUCAST / CDC NHSN Guidelines: {query}"
+        prompt = f"Supervisor inquiry for Tb Drug Resistance Agent under DEMONSTRATION ONLY - no guideline validation: {query}"
         return self.llm.invoke(prompt)

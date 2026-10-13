@@ -5,7 +5,7 @@
   "secondary_metric": 16.2,
   "status_flag": "DISCORDANT",
   "is_stat": true,
-  "clinical_notes": "Automated supervisory surveillance trigger under IDSA / SHEA 2024 Antimicrobial Stewardship protocol.",
+  "clinical_notes": "Synthetic numerical threshold demonstration; not a clinical protocol.",
   "biomarkers": {
     "marker_alpha": "ELEVATED",
     "concordance_score": 0.42

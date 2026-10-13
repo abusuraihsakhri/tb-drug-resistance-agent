@@ -148,85 +148,123 @@ def classify_tb_resistance(
     Returns:
         Dict with resistance category, details, and clinical implications
     """
-    # Normalize inputs
-    susc = {k.lower().replace(" ", "_"): v.upper() for k, v in susceptibility.items()}
+    # Unknown or untested results must never be interpreted as susceptible.
+    if not isinstance(susceptibility, dict):
+        raise ValueError("Susceptibility must be a mapping of drugs to S, R or U.")
 
-    # Determine resistance to each first-line drug
-    inh_resistant = susc.get("isoniazid", "S") == "R"
-    rif_resistant = susc.get("rifampicin", "S") == "R"
-    pza_resistant = susc.get("pyrazinamide", "S") == "R"
-    emb_resistant = susc.get("ethambutol", "S") == "R"
-    sm_resistant = susc.get("streptomycin", "S") == "R"
+    aliases = {
+        "inh": "isoniazid", "h": "isoniazid",
+        "rif": "rifampicin", "r": "rifampicin", "rifampin": "rifampicin",
+        "pza": "pyrazinamide", "z": "pyrazinamide",
+        "emb": "ethambutol", "e": "ethambutol",
+        "sm": "streptomycin",
+        "mfx": "moxifloxacin", "lfx": "levofloxacin",
+        "fq": "fluoroquinolones", "bdq": "bedaquiline",
+        "lzd": "linezolid",
+    }
+    valid_drugs = set(FIRST_LINE_DRUGS) | {
+        "moxifloxacin", "levofloxacin", "gatifloxacin",
+        "fluoroquinolones", "amikacin", "kanamycin",
+        "capreomycin", "injectable_agents", "bedaquiline", "linezolid",
+    }
+    susc = {}
+    for key, value in susceptibility.items():
+        if not isinstance(key, str) or not isinstance(value, str):
+            raise ValueError("Drug names and susceptibility results must be strings.")
+        drug = aliases.get(key.strip().lower().replace(" ", "_"), key.strip().lower().replace(" ", "_"))
+        if drug not in valid_drugs:
+            raise ValueError(f"Unknown drug: {key!r}")
+        state = value.strip().upper()
+        if state in ("", "UNKNOWN", "NOT_TESTED", "NT"):
+            state = "U"
+        if state not in ("S", "R", "U"):
+            raise ValueError(f"Invalid result for {key!r}: expected S, R or U")
+        if drug in susc and susc[drug] != state:
+            raise ValueError(f"Conflicting susceptibility results for {drug}")
+        susc[drug] = state
 
-    # Second-line resistance
-    fq_resistant = any(susc.get(d, "S") == "R" for d in
-                       ["moxifloxacin", "levofloxacin", "gatifloxacin", "fluoroquinolones"])
-    inj_resistant = any(susc.get(d, "S") == "R" for d in
-                        ["amikacin", "kanamycin", "capreomycin", "injectable_agents"])
-    bdq_resistant = susc.get("bedaquiline", "S") == "R"
-    lzd_resistant = susc.get("linezolid", "S") == "R"
+    inh = susc.get("isoniazid", "U")
+    rif = susc.get("rifampicin", "U")
+    inh_resistant = inh == "R"
+    rif_resistant = rif == "R"
+    pza_resistant = susc.get("pyrazinamide") == "R"
+    emb_resistant = susc.get("ethambutol") == "R"
+    sm_resistant = susc.get("streptomycin") == "R"
+    fq_drugs = ("moxifloxacin", "levofloxacin", "gatifloxacin", "fluoroquinolones")
+    fq_resistant = any(susc.get(d) == "R" for d in fq_drugs)
+    inj_resistant = any(susc.get(d) == "R" for d in
+                        ("amikacin", "kanamycin", "capreomycin", "injectable_agents"))
+    bdq_resistant = susc.get("bedaquiline") == "R"
+    lzd_resistant = susc.get("linezolid") == "R"
+    first_line_resistant_count = sum(
+        susc.get(d) == "R" for d in FIRST_LINE_DRUGS
+    )
 
-    # Count first-line resistance
-    first_line_resistant_count = sum([
-        inh_resistant, rif_resistant, pza_resistant, emb_resistant, sm_resistant
-    ])
+    resistance_category = "INDETERMINATE"
+    subcategory = "Insufficient first-line DST to establish a resistance category"
+    clinical_significance = "UNDETERMINED"
 
-    # Classify resistance pattern
-    resistance_category = "SUSCEPTIBLE"
-    subcategory = None
-    clinical_significance = "LOW"
-
-    if not inh_resistant and not rif_resistant:
-        if first_line_resistant_count == 0:
-            resistance_category = "SUSCEPTIBLE"
-            subcategory = "Fully susceptible"
-            clinical_significance = "LOW"
-        elif first_line_resistant_count == 1:
-            resistance_category = "MONO_RESISTANT"
-            drugs = []
-            if pza_resistant: drugs.append("PZA")
-            if emb_resistant: drugs.append("EMB")
-            if sm_resistant: drugs.append("SM")
-            subcategory = f"Mono-resistant to {'+'.join(drugs)}"
-            clinical_significance = "MODERATE"
-    else:
-        if inh_resistant and not rif_resistant:
-            resistance_category = "INH_MONO_RESISTANT"
-            subcategory = "Isoniazid mono-resistant"
-            clinical_significance = "MODERATE"
-        elif rif_resistant and not inh_resistant:
-            resistance_category = "RIF_MONO_RESISTANT"
-            subcategory = "Rifampicin mono-resistant (treat as MDR-TB pending full DST)"
-            clinical_significance = "HIGH"
-        elif inh_resistant and rif_resistant:
+    if rif_resistant:
+        if inh_resistant:
             resistance_category = "MDR_TB"
-            subcategory = "Multi-drug resistant TB (resistant to INH + RIF)"
-            clinical_significance = "HIGH"
+            subcategory = "Rifampicin and isoniazid resistance (MDR-TB)"
+        elif inh == "S":
+            resistance_category = "RIF_MONO_RESISTANT" if first_line_resistant_count == 1 else "RIF_RESISTANT"
+            subcategory = "Rifampicin-resistant TB (isoniazid susceptible)"
+        else:
+            resistance_category = "RR_TB"
+            subcategory = "Rifampicin-resistant TB; isoniazid susceptibility unknown"
+        clinical_significance = "HIGH"
+        if fq_resistant:
+            resistance_category = "PRE_XDR_TB"
+            subcategory = "Pre-XDR-TB (rifampicin resistant and fluoroquinolone resistant)"
+            clinical_significance = "VERY_HIGH"
+            if bdq_resistant or lzd_resistant:
+                resistance_category = "XDR_TB"
+                drugs = [d for d, resistant in
+                         (("bedaquiline", bdq_resistant), ("linezolid", lzd_resistant))
+                         if resistant]
+                subcategory = "XDR-TB (pre-XDR plus " + "+".join(drugs) + " resistance)"
+                clinical_significance = "CRITICAL"
+    elif rif == "S" and inh_resistant:
+        resistance_category = "INH_MONO_RESISTANT" if first_line_resistant_count == 1 else "INH_POLY_RESISTANT"
+        subcategory = "Isoniazid-resistant, rifampicin-susceptible TB"
+        clinical_significance = "MODERATE"
+    elif rif == "S" and inh == "S":
+        other_resistant = [
+            d for d in ("pyrazinamide", "ethambutol", "streptomycin")
+            if susc.get(d) == "R"
+        ]
+        if len(other_resistant) == 1:
+            resistance_category = "MONO_RESISTANT"
+            subcategory = f"Mono-resistant to {FIRST_LINE_DRUGS[other_resistant[0]]['abbreviation']}"
+            clinical_significance = "MODERATE"
+        elif len(other_resistant) > 1:
+            resistance_category = "POLY_RESISTANT"
+            subcategory = "Resistance to multiple first-line drugs other than INH/RIF"
+            clinical_significance = "MODERATE"
+        elif fq_resistant or inj_resistant or bdq_resistant or lzd_resistant:
+            resistance_category = "ADDITIONAL_DRUG_RESISTANCE"
+            subcategory = "Second-line resistance recorded without first-line resistance; specialist review required"
+            clinical_significance = "UNDETERMINED"
+        elif any(susc.get(d, "U") == "U" for d in FIRST_LINE_DRUGS):
+            subcategory = "No documented first-line resistance; DST incomplete"
+        else:
+            resistance_category = "SUSCEPTIBLE"
+            subcategory = "All five recorded first-line susceptibility results are S"
+            clinical_significance = "LOW"
 
-            # Check for pre-XDR
-            if fq_resistant:
-                resistance_category = "PRE_XDR_TB"
-                subcategory = "Pre-XDR-TB (MDR + fluoroquinolone resistant)"
-                clinical_significance = "VERY_HIGH"
-
-                # Check for XDR (2021 WHO definition: pre-XDR + BDQ or LZD resistance)
-                if bdq_resistant or lzd_resistant:
-                    resistance_category = "XDR_TB"
-                    xdr_drugs = []
-                    if bdq_resistant: xdr_drugs.append("bedaquiline")
-                    if lzd_resistant: xdr_drugs.append("linezolid")
-                    subcategory = f"XDR-TB (Pre-XDR + resistant to {'+'.join(xdr_drugs)})"
-                    clinical_significance = "CRITICAL"
-
+    untested_drugs = [d for d in FIRST_LINE_DRUGS if susc.get(d, "U") == "U"]
     # Build resistance details
     resistance_details = {}
     for drug_name, drug_info in FIRST_LINE_DRUGS.items():
         drug_key = drug_name.lower().replace(" ", "_")
-        is_r = susc.get(drug_key, "S") == "R"
+        state = susc.get(drug_key, "U")
+        is_r = state == "R"
         resistance_details[drug_name] = {
             "abbreviation": drug_info["abbreviation"],
             "resistant": is_r,
-            "interpretation": "R" if is_r else "S",
+            "interpretation": state,
             "critical": drug_info["critical"],
         }
 
@@ -253,6 +291,9 @@ def classify_tb_resistance(
             "linezolid": lzd_resistant,
         },
         "resistant_drug_count": first_line_resistant_count,
+        "untested_first_line_drugs": untested_drugs,
+        "incomplete_first_line_dst": bool(untested_drugs),
+        "classification_standard": "WHO 2021 MDR/RR-TB, pre-XDR and XDR definitions",
         "resistance_details": resistance_details,
         "mutation_analysis": mutation_analysis,
     }
@@ -474,9 +515,27 @@ def get_who_regimen(resistance_category: str,
         },
     }
 
-    regimen = regimens.get(resistance_category, regimens["SUSCEPTIBLE"])
+    # Retained for backward compatibility. Regimen tables are historical examples,
+    # not validated prescribing advice; never silently substitute susceptible treatment.
+    if resistance_category in regimens:
+        regimen = dict(regimens[resistance_category])
+    else:
+        regimen = {
+            "regimen_name": "No automated regimen available",
+            "drugs": [],
+            "phases": [],
+            "total_duration": "Not determined",
+            "monitoring": [],
+        }
     regimen["resistance_category"] = resistance_category
-    return regimen
+    regimen["safety_notice"] = (
+        "Historical, unvalidated examples only; NOT a treatment recommendation. "
+        "This table has not been updated for WHO module 4 (2026). "
+        "Do not use to prescribe, dose or select a regimen. Consult current WHO "
+        "guidance, complete DST and a qualified TB specialist."
+    )
+    # Put the safety warning first in JSON/CLI output.
+    return {"safety_notice": regimen["safety_notice"], **regimen}
 
 
 # ─── Full TB Resistance Analysis ─────────────────────────────────────────────
@@ -504,12 +563,12 @@ def analyze_tb_resistance(
     alerts = []
     cat = classification["resistance_category"]
 
-    if cat in ("MDR_TB", "PRE_XDR_TB", "XDR_TB"):
+    if cat in ("MDR_TB", "RR_TB", "RIF_RESISTANT", "PRE_XDR_TB", "XDR_TB"):
         alerts.append({
             "severity": "CRITICAL",
             "type": "MULTI_DRUG_RESISTANCE",
             "message": f"{classification['subcategory']} detected",
-            "recommendation": "Refer to MDR-TB expert panel. Initiate appropriate regimen.",
+            "recommendation": "Refer to a drug-resistant TB specialist; confirm full DST before treatment selection.",
         })
 
     if cat == "RIF_MONO_RESISTANT":
@@ -517,7 +576,7 @@ def analyze_tb_resistance(
             "severity": "HIGH",
             "type": "RIF_MONO_RESISTANCE",
             "message": "Rifampicin mono-resistance detected - treat as MDR-TB pending full DST",
-            "recommendation": "Obtain full second-line DST. Initiate MDR-TB regimen.",
+            "recommendation": "Obtain full second-line DST and expert consultation.",
         })
 
     if cat == "XDR_TB":
@@ -546,11 +605,20 @@ def load_from_csv(filepath: str) -> List[Dict[str, Any]]:
         for row in reader:
             susceptibility = {}
             for col, val in row.items():
+                if col is None:
+                    continue
                 col_l = col.strip().lower()
-                val_u = val.strip().upper()
-                if col_l not in ("patient_id", "specimen_id", "date", "specimen_type"):
-                    if val_u in ("S", "R"):
-                        susceptibility[col.strip()] = val_u
+                val_u = (val or "").strip().upper()
+                if col_l in FIRST_LINE_DRUGS or col_l in (
+                    "inh", "rif", "rifampin", "pza", "emb", "sm",
+                    "moxifloxacin", "levofloxacin", "gatifloxacin",
+                    "fluoroquinolones", "amikacin", "kanamycin", "capreomycin",
+                    "injectable_agents", "bedaquiline", "linezolid",
+                ):
+                    if val_u in ("S", "R", "U", "UNKNOWN", ""):
+                        susceptibility[col.strip()] = val_u or "U"
+                    else:
+                        raise ValueError(f"Invalid DST result {val!r} in column {col!r}")
             if susceptibility:
                 result = analyze_tb_resistance(susceptibility)
                 result["raw_data"] = dict(row)

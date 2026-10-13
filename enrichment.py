@@ -1,6 +1,6 @@
 """
 Enrichment Feature Implementation for tb-drug-resistance-agent.
-Generated based on domain-specific requirements in specifications.
+This module contains generic numerical threshold placeholders only. Its clinical-sounding class names do not represent implemented or validated TB algorithms.
 """
 from dataclasses import dataclass, field
 from typing import Dict, Any, List, Optional

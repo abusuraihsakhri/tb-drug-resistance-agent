@@ -93,7 +93,7 @@ class TBCoordinator:
             "stat_critical_alerts": stat_count,
             "warning_alerts": warn_count,
             "alerts": [a.to_dict() for a in all_alerts],
-            "guideline_standard": "IDSA / SHEA 2024 Antimicrobial Stewardship",
+            "guideline_standard": "DEMONSTRATION ONLY - no guideline validation",
             "consensus_summary": f"Multi-agent supervision completed across 3 sub-agents with status [{status.value}].",
         }
 
@@ -105,6 +105,6 @@ class TBCoordinator:
         if "status" in q or "summary" in q:
             return f"TBDrug-Resistance Sentinel: Molecular & Phenotypic MDR/XDR-TB Regimen Planner currently tracking {len(self.case_registry)} cases in on-premises memory."
         elif "guideline" in q or "standard" in q:
-            return "Active clinical surveillance operates under IDSA / SHEA 2024 Antimicrobial Stewardship validated protocols."
+            return "Active clinical surveillance operates under DEMONSTRATION ONLY - no guideline validation validated protocols."
         else:
             return f"TBDrug-Resistance Sentinel: Molecular & Phenotypic MDR/XDR-TB Regimen Planner executive agent online. Zero-PHI air-gapped monitoring active."
