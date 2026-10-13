@@ -26,8 +26,8 @@ Python 3.10 or newer:
 python -m pip install -e ".[api,test]"
 python -m pytest -q
 
-python -m tb_resistance classify --susceptibility '{"isoniazid":"R","rifampicin":"R","moxifloxacin":"R"}'
-python -m tb_resistance csv --input your-dst.csv --output classifications.json
+tb-resistance classify --susceptibility '{"isoniazid":"R","rifampicin":"R","moxifloxacin":"R"}'
+tb-resistance csv --input your-dst.csv --output classifications.json
 ```
 
 For CSV, use columns such as `isoniazid,rifampicin,pyrazinamide,ethambutol,streptomycin,moxifloxacin,bedaquiline,linezolid` with values `S`, `R` or `U`. Unrecognized result values are rejected rather than silently treated as susceptible.
