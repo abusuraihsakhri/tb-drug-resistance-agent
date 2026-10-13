@@ -106,3 +106,17 @@ def test_external_log_getter_cannot_change_internal_chain():
     copy = ledger.get_trail()
     copy[0]["current_hash"] = "forged"
     assert ledger.verify_integrity()
+
+
+def test_second_line_resistance_not_labeled_fully_susceptible():
+    result = classify_tb_resistance({
+        "isoniazid": "S", "rifampicin": "S", "pyrazinamide": "S",
+        "ethambutol": "S", "streptomycin": "S", "bedaquiline": "R",
+    })
+    assert result["resistance_category"] == "ADDITIONAL_DRUG_RESISTANCE"
+
+
+def test_mock_provider_does_not_impersonate_real_llm():
+    from agents.llm_factory import LLMFactory
+    with pytest.raises(ValueError, match="not implemented"):
+        LLMFactory.create("openai")
