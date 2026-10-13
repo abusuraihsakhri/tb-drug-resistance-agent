@@ -1,7 +1,7 @@
 """
 Clinical Data Models & Enums for TBDrug-Resistance Sentinel: Molecular & Phenotypic MDR/XDR-TB Regimen Planner.
 Domain: Infectious Diseases
-Standard: IDSA / SHEA 2024 Antimicrobial Stewardship
+Standard: DEMONSTRATION ONLY - no guideline validation
 """
 import datetime
 from dataclasses import dataclass, field
@@ -43,7 +43,7 @@ class AgentAlert:
     title: str
     clinical_finding: str
     actionable_recommendation: str
-    guideline_citation: str = "IDSA / SHEA 2024 Antimicrobial Stewardship"
+    guideline_citation: str = "DEMONSTRATION ONLY - no guideline validation"
     timestamp: str = field(default_factory=lambda: datetime.datetime.now(datetime.timezone.utc).isoformat())
 
     def to_dict(self) -> Dict[str, Any]:
