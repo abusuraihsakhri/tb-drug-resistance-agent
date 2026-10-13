@@ -86,7 +86,7 @@ def test_explicit_csv_booleans(value, expected):
 
 def test_csv_missing_dst_fields_is_not_misclassified(tmp_path):
     file = tmp_path / "sample.csv"
-    file.write_text("patient_id,isoniazid,rifampicin\\nCASE1,S,S\\n", encoding="utf-8")
+    file.write_text("patient_id,isoniazid,rifampicin\nCASE1,S,S\n", encoding="utf-8")
     result = load_from_csv(str(file))
     assert len(result) == 1
     assert result[0]["classification"]["resistance_category"] == "INDETERMINATE"
