@@ -1,0 +1,37 @@
+name: Publish browser interpreter
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/configure-pages@v5
+      - name: Assemble static application and Python engine
+        run: |
+          mkdir -p _site
+          cp web/index.html _site/index.html
+          cp tb_resistance.py _site/tb_resistance.py
+          test -s _site/index.html
+          test -s _site/tb_resistance.py
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
