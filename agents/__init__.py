@@ -1,7 +1,7 @@
 """
-Tb Drug Resistance Agent — Enterprise Automated Analytical Suite.
+Tb Drug Resistance Agent — Generic numerical demonstration supervisors.
 Domain: Antimicrobial Stewardship & Microbiology
-Standard: CLSI M100 / EUCAST / CDC NHSN Guidelines
+Standard: DEMONSTRATION ONLY - no guideline validation
 
 """
 __version__ = "3.0.0-ENTERPRISE"
