@@ -243,7 +243,11 @@ def classify_tb_resistance(
             resistance_category = "POLY_RESISTANT"
             subcategory = "Resistance to multiple first-line drugs other than INH/RIF"
             clinical_significance = "MODERATE"
-        elif any(susc.get(d) == "U" for d in FIRST_LINE_DRUGS):
+        elif fq_resistant or inj_resistant or bdq_resistant or lzd_resistant:
+            resistance_category = "ADDITIONAL_DRUG_RESISTANCE"
+            subcategory = "Second-line resistance recorded without first-line resistance; specialist review required"
+            clinical_significance = "UNDETERMINED"
+        elif any(susc.get(d, "U") == "U" for d in FIRST_LINE_DRUGS):
             subcategory = "No documented first-line resistance; DST incomplete"
         else:
             resistance_category = "SUSCEPTIBLE"
