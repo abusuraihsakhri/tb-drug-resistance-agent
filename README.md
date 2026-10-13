@@ -1,158 +1,62 @@
-# Tb Drug Resistance Agent
+# TB Drug Resistance Interpreter
 
-> **Domain:** Infectious Disease Surveillance & Microbiology  
-> **Reference Guidelines & Standards:** `CLSI M100, EUCAST & CDC NHSN Clinical Standards`
+A deterministic Python research utility for classifying *Mycobacterium tuberculosis* drug-susceptibility results. It distinguishes rifampicin resistance, MDR-TB, pre-XDR-TB and XDR-TB using the WHO 2021 resistance definitions.
 
-<div align="center">
+**Research and educational use only. This software is not a validated clinical decision-support system.** Do not use its output to diagnose a patient, determine treatment, prescribe medication or calculate doses.
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-![Python](https://img.shields.io/badge/Python-3.10%20%7C%203.11%20%7C%203.12-3776AB.svg?logo=python&logoColor=white)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.111-009688.svg?logo=fastapi&logoColor=white)
-![Audit Trail](https://img.shields.io/badge/Audit-HMAC--SHA256_Tamper--Evident-brightgreen.svg)
-![Zero-PHI Guard](https://img.shields.io/badge/Guard-Zero--PHI_Outbound-blue.svg)
-![Docker](https://img.shields.io/badge/Docker-Ready-2496ED.svg?logo=docker&logoColor=white)
+## Browser application
 
-</div>
+The `web/index.html` interface uses **Pyodide** to execute the same `tb_resistance.py` classifier entirely in the browser. The GitHub Actions workflow `.github/workflows/pages.yml` assembles the page and Python module for GitHub Pages. The live URL should be added only after a successful deployment and end-to-end verification.
 
----
+The web interface accepts S (susceptible), R (resistant), and U (unknown / not tested), presents the classification and DST completeness, and exports JSON. **Patient identifiers must not be entered.** No result data is sent to an application backend, but Pyodide runtime files are fetched from the pinned jsDelivr CDN. An internet connection is required for initial loading.
 
-## 📖 What It Does
+## Python interpreter
 
-**Tb Drug Resistance Agent** is an advanced analytical and computational platform implementing Molecular & Phenotypic MDR/XDR-TB Regimen Advisor.
+- `tb_resistance.py`: stdlib-only DST classification, limited mutation annotation, CSV input and JSON output.
+- Missing DST is **unknown**, not susceptible. The interpreter distinguishes first-line susceptibility that is incomplete from fully documented susceptible results.
+- Pre-XDR and XDR classification covers the WHO **MDR/RR-TB** population, including rifampicin-resistant cases without isoniazid resistance.
+- Mutation annotations are illustrative, not a validated catalogue-based interpretation. The hard-coded mutation frequencies and historical MIC fields are not suitable for diagnosis.
+- `get_who_regimen()` is retained **only for backward compatibility**. It contains **outdated historical example regimens and doses** that do **not** implement WHO's 2026 Module 4 guideline. Every response carries a safety notice. Do not use it for treatment selection or dosing.
 
----
+### Install and run
 
-## ⚙️ Key Capabilities & Algorithmic Modules
+Python 3.10 or newer:
 
-### 🔬 Analytical Functions
-
-- **`classify_tb_resistance()`**: Classify TB drug resistance pattern.
-
-Args:
-    susceptibility: Dict mapping drug name to 'S' or 'R'
-    mutations: Optional dict mapping gene to list of detected mutations
-
-Returns:
-    Dict with resistance category, details, and clinical implications
-- **`get_who_regimen()`**: Get WHO treatment regimen recommendation based on resistance pattern.
-
-Based on WHO consolidated guidelines on TB (2022 update).
-
-Args:
-    resistance_category: One of SUSCEPTIBLE, MONO_RESISTANT, INH_MONO_RESISTANT,
-                        RIF_MONO_RESISTANT, MDR_TB, PRE_XDR_TB, XDR_TB
-    additional_resistance: Dict of additional drug resistance flags
-
-Returns:
-    Dict with regimen recommendation, duration, and monitoring
-- **`analyze_tb_resistance()`**: Complete TB drug resistance analysis.
-
-Args:
-    susceptibility: Dict mapping drug name to 'S' or 'R'
-    mutations: Optional dict mapping gene to list of detected mutations
-
-Returns:
-    Comprehensive analysis with classification, regimen, and monitoring
-- **`load_from_csv()`**: Load TB susceptibility data from CSV and analyze each record.
-- **`build_parser()`**: Build the argument parser.
-
----
-
-## 💻 CLI Quickstart & Usage
-
-### 1. Guided Interactive Mode
 ```bash
-python cli.py
+python -m pip install -e ".[api,test]"
+python -m pytest -q
+
+python -m tb_resistance classify --susceptibility '{"isoniazid":"R","rifampicin":"R","moxifloxacin":"R"}'
+python -m tb_resistance csv --input your-dst.csv --output classifications.json
 ```
 
-### 2. Direct Parameterized Evaluation
-```bash
-python cli.py --input data.csv
-```
+For CSV, use columns such as `isoniazid,rifampicin,pyrazinamide,ethambutol,streptomycin,moxifloxacin,bedaquiline,linezolid` with values `S`, `R` or `U`. Unrecognized result values are rejected rather than silently treated as susceptible.
 
-### Parameter Reference
-- `--interactive`: Launch guided terminal interactive wizard.
-- `--input <path>`: Evaluate input from JSON or CSV specification.
-- `--json`: Output deterministic structured results in JSON format.
+## Additional experimental components
 
-### Input Data Schema
+The repository also includes two **separate, generic threshold-based demonstration systems**: `agents/` (Pydantic/FastAPI supervisor) and `tb_drug_resistance_agent/` (dataclass coordinator/CLI). Their arbitrary numerical thresholds and status flags **do not determine TB resistance or implement the cited clinical guidelines**. The similarly named `enrichment.py` modules are parameterized threshold demonstrations, not implemented TB treatment, dosing, interaction or surveillance algorithms.
 
-| Field | Description | Requirement |
-|:------|:------------|:------------|
-| `case_id` | Parameter / observation metric | Required |
-| `patient_synthetic_id` | Parameter / observation metric | Required |
-| `metric_primary` | Parameter / observation metric | Required |
-| `metric_secondary` | Parameter / observation metric | Required |
-| `is_stat` | Parameter / observation metric | Required |
-| `status_flag` | Parameter / observation metric | Required |
-
----
-
-## 🛡️ Security & Enterprise Architecture
-
-* **Zero-PHI Outbound Interceptor:** Active AST and regex inspection blocking SSNs, MRNs, phone numbers, and patient identifiers.
-* **Tamper-Evident HMAC-SHA256 Audit Trail:** Chained, cryptographically signed logs for every evaluation and state transition.
-* **Secure Key Management:** Audit trail uses `AUDIT_SECRET_KEY` environment variable or generates a secure ephemeral key if not set.
-* **Air-Gapped LLM Reasoning Adapter:** Agnostic integration for local Ollama instances (`llama3`, `mistral`), Claude 3.5 Sonnet, GPT-4o, and deterministic test mocks.
-* **Active Learning Bayesian Calibration:** Dynamic tracker updating worker reliability weights and monitoring Brier calibration drift.
-* **FastAPI & Prometheus Telemetry:** Exposes OpenAPI 3.1 REST endpoints and operational Prometheus metrics (`/metrics`).
-
-### Security Configuration
-
-Set the `AUDIT_SECRET_KEY` environment variable for persistent audit integrity across restarts:
+To run the separate numerical demonstration CLI:
 
 ```bash
-# Linux/macOS
-export AUDIT_SECRET_KEY="your-secure-random-key"
-
-# Windows
-set AUDIT_SECRET_KEY=your-secure-random-key
-```
-
-If not set, a secure ephemeral key is generated at runtime (audit trail will not persist across restarts).
-
----
-
-## 🧪 Testing & Verification
-
-Run the automated test suite:
-
-```bash
-pytest -v
-```
-
-Execute high-throughput batch simulation benchmarks:
-
-```bash
-python simulator.py --tasks 1000 --concurrency 8
-```
-
-### Additional CLI Commands (tb_drug_resistance_agent package)
-
-The `tb_drug_resistance_agent` package provides additional enterprise CLI commands:
-
-```bash
-# Run single case clinical audit
-python -m tb_drug_resistance_agent.cli audit --case-id CASE-001 --primary 26.2 --secondary 12.5 --stat --status DISCORDANT
-
-# Query the supervisory chat
-python -m tb_drug_resistance_agent.cli chat "What is the system status?"
-
-# Batch process CSV records
-python -m tb_drug_resistance_agent.cli batch -i sample.csv -o results.csv
-
-# Verify audit trail integrity
+python -m tb_drug_resistance_agent.cli audit --case-id DEMO-001 --primary 26 --secondary 13
 python -m tb_drug_resistance_agent.cli verify-audit
-
-# Launch FastAPI REST server
 python -m tb_drug_resistance_agent.cli serve --host 127.0.0.1 --port 8000
 ```
 
----
+The example API exposes `/health`, `/api/audit`, and `/api/chat`. It has no authentication or production hardening: **bind to localhost, not the public Internet**. The container port is intended for development only. The demonstration audit chain is in-memory, not durable across restarts. HMAC signatures detect changes to retained log entries but do not prove an absence of records, compliance certification, or protection against every form of PHI.
 
-## 🐳 Container Deployment
+## Security and configuration
 
-```bash
-docker build -t tb-drug-resistance-agent .
-docker run -p 8000:8000 tb-drug-resistance-agent
-```
+- Keep test and research input de-identified. Simple regular-expression identifier checks are **not** comprehensive PHI de-identification.
+- In Docker Compose, provide a strong `AUDIT_SECRET_KEY` through the environment (see `.env.example`); do not commit the value. Without it, an ephemeral key is generated, and audit verification only applies within that process lifetime.
+- The generic LLM provider factory currently returns a deterministic mock, regardless of selected provider. No live hosted or local LLM integration is implemented.
+- The browser application executes locally; only static assets and the CDN runtime are fetched. It does not persist user input.
+- GitHub Actions runs Python installation, compilation, tests and CLI smoke checks.
+
+## Authoritative clinical references
+
+- WHO (2021): [Updated pre-XDR-TB and XDR-TB definitions](https://www.who.int/news/item/27-01-2021-who-announces-updated-definitions-of-extensively-drug-resistant-tuberculosis).
+- WHO (2026): [Consolidated guidelines on TB, Module 4: Treatment and care, second edition](https://www.who.int/publications/i/item/9789240125124).
+
+**License:** MIT (see `LICENSE`). **Browser compatibility:** current browsers supporting WebAssembly and ES2020+; Pyodide CDN access is necessary.
