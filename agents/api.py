@@ -23,7 +23,7 @@ class ChatRequest(BaseModel):
 
 @app.get("/health")
 def health():
-    return {"status": "HEALTHY", "service": "tb-drug-resistance-agent", "domain": "Antimicrobial Stewardship & Microbiology", "standard": "CLSI M100 / EUCAST / CDC NHSN Guidelines", "version": "3.0.0-ENTERPRISE"}
+    return {"status": "HEALTHY", "service": "tb-drug-resistance-agent", "domain": "Antimicrobial Stewardship & Microbiology", "standard": "DEMONSTRATION ONLY - no guideline validation", "version": "3.0.0-ENTERPRISE"}
 
 
 @app.get("/metrics")
