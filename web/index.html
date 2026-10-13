@@ -1,236 +1,123 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Tb Drug Resistance Engine — Operations Console</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --bg: #090d16;
-            --card: #111827;
-            --border: #1f293d;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.25);
-            --text: #f3f4f6;
-            --text-muted: #9ca3af;
-            --danger: #ef4444;
-            --warning: #f59e0b;
-            --success: #10b981;
-        }
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            padding: 2rem;
-            min-height: 100vh;
-        }
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 1.5rem;
-            margin-bottom: 2rem;
-        }
-        .header-title h1 { font-size: 1.6rem; font-weight: 700; color: #fff; }
-        .header-title p { color: var(--text-muted); font-size: 0.9rem; margin-top: 0.25rem; }
-        .badge {
-            display: inline-block;
-            padding: 0.3rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            background: var(--accent-glow);
-            color: var(--accent);
-            border: 1px solid var(--accent);
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: 1fr 1.2fr;
-            gap: 1.5rem;
-        }
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        }
-        .card h2 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-        .form-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; }
-        input, select, textarea {
-            width: 100%;
-            padding: 0.65rem 0.9rem;
-            background: #0d1322;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            color: #fff;
-            font-family: inherit;
-            font-size: 0.9rem;
-        }
-        input:focus, textarea:focus { outline: none; border-color: var(--accent); }
-        .btn {
-            background: var(--accent);
-            color: #fff;
-            border: none;
-            padding: 0.7rem 1.4rem;
-            border-radius: 6px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: 0.2s;
-            width: 100%;
-        }
-        .btn:hover { background: #2563eb; }
-        .terminal {
-            background: #060911;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.85rem;
-            color: #10b981;
-            height: 380px;
-            overflow-y: auto;
-            white-space: pre-wrap;
-        }
-        .metrics-bar {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 1rem;
-            margin-bottom: 1.5rem;
-        }
-        .metric-box {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            padding: 1rem;
-            text-align: center;
-        }
-        .metric-val { font-size: 1.4rem; font-weight: 700; color: #fff; margin-top: 0.25rem; }
-        .metric-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; }
-    </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light">
+<title>TB drug-resistance classification | Research tool</title>
+<style>
+:root{font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#172b3a;background:#f4f7fa;font-size:16px}
+*{box-sizing:border-box}body{margin:0}main{max-width:1060px;margin:auto;padding:28px 22px 60px}
+header{margin-bottom:24px}h1{font-size:clamp(1.6rem,3.5vw,2.2rem);margin:0 0 8px}h2{font-size:1.1rem;margin:0 0 16px}
+p{line-height:1.55;color:#405363}small{color:#536477}
+.notice{padding:14px 16px;border-left:4px solid #af6b17;background:#fff6e8;color:#513b1d;line-height:1.5}
+.layout{display:grid;grid-template-columns:minmax(290px,1fr) minmax(290px,1fr);gap:18px;margin-top:22px}
+.panel{background:#fff;border:1px solid #d5e0e7;padding:20px;border-radius:12px;box-shadow:0 3px 14px #14304d0a}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.field label{font-weight:600;display:block;margin-bottom:5px;font-size:.88rem}
+select{width:100%;padding:10px;border:1px solid #899cad;border-radius:7px;background:white;color:inherit;font-size:1rem}
+button{border-radius:7px;border:1px solid #2d5d80;background:#185a87;color:#fff;padding:11px 17px;font:600 0.95rem inherit;cursor:pointer}
+button.secondary{background:white;color:#185a87}
+button:disabled{opacity:.6;cursor:not-allowed}
+button:focus-visible,select:focus-visible{outline:3px solid #e3a240;outline-offset:2px}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px}
+#status{font-size:.9rem;min-height:1.4rem}
+#summary{font-size:1.2rem;font-weight:700;margin:8px 0 12px}
+#details{overflow:auto;line-height:1.6;white-space:pre-wrap;word-break:break-word;font-size:.92rem}
+details{margin-top:18px}summary{cursor:pointer;font-weight:600}pre{overflow:auto;padding:14px;background:#f3f6f8;border-radius:8px;font-size:.82rem}
+footer{margin-top:22px;color:#405363;font-size:.85rem}
+@media(max-width:740px){.layout{grid-template-columns:1fr}.fields{grid-template-columns:1fr 1fr}main{padding:19px 14px}}
+</style>
 </head>
 <body>
-
-    <div class="header">
-        <div class="header-title">
-            <h1>Tb Drug Resistance Engine</h1>
-            <p>Domain: Clinical & Cryptographic AI | Standard: CAP / CLSI / NIST Standards | LabMind-Atlas Architecture</p>
-        </div>
-        <div>
-            <span class="badge">Air-Gapped Active</span>
-            <span class="badge" style="background: rgba(16,185,129,0.2); color: #10b981; border-color: #10b981;">Zero-PHI Guard Active</span>
-        </div>
-    </div>
-
-    <div class="metrics-bar">
-        <div class="metric-box">
-            <div class="metric-label">System Status</div>
-            <div class="metric-val" style="color: var(--success);" id="m-status">OPTIMAL</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Tasks Processed</div>
-            <div class="metric-val" id="m-tasks">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">Audit Blocks Signed</div>
-            <div class="metric-val" id="m-audit">142</div>
-        </div>
-        <div class="metric-box">
-            <div class="metric-label">PHI Interceptions</div>
-            <div class="metric-val" style="color: var(--accent);" id="m-phi">0</div>
-        </div>
-    </div>
-
-    <div class="grid">
-        <div class="card">
-            <h2>⚙️ Dispatch Distributed Component Audit</h2>
-            <div class="form-group">
-                <label>Task / Sample ID</label>
-                <input type="text" id="task_id" value="TASK-2026-LIVE-01">
-            </div>
-            <div class="form-group">
-                <label>Target Identifier</label>
-                <input type="text" id="target_id" value="SPECIMEN-ALPHA-77">
-            </div>
-            <div class="form-group">
-                <label>Primary Measurement / Value</label>
-                <input type="number" id="primary_metric" value="29.4" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Secondary Metric / Kinetic Index</label>
-                <input type="number" id="secondary_metric" value="14.8" step="0.1">
-            </div>
-            <div class="form-group">
-                <label>Status / Phenotype Descriptor</label>
-                <input type="text" id="status_descriptor" value="DISCORDANT_ANOMALY">
-            </div>
-            <div class="form-group">
-                <label><input type="checkbox" id="is_critical" checked> Trigger Emergency / Critical Flag</label>
-            </div>
-            <button class="btn" onclick="runAudit()">Execute Distributed Component Audit</button>
-        </div>
-
-        <div class="card">
-            <h2>📊 Real-Time Consensus Dossier & Audit Log</h2>
-            <div class="terminal" id="outputConsole">// Tb Drug Resistance Engine Operations Console Ready
-// Connection established with Air-Gapped Supervisor
-// Cryptographic HMAC-SHA256 audit ledger loaded.
-// Ready for live task payload dispatch...</div>
-        </div>
-    </div>
-
-    <script>
-        async function runAudit() {
-            const consoleEl = document.getElementById('outputConsole');
-            consoleEl.innerText = "// Dispatching task across specialized workers...
-// Invoking InvariantQCWorker, SafetyEscalationWorker, ProtocolWorker...";
-
-            const payload = {
-                task_id: document.getElementById('task_id').value,
-                target_identifier: document.getElementById('target_id').value,
-                primary_metric: parseFloat(document.getElementById('primary_metric').value),
-                secondary_metric: parseFloat(document.getElementById('secondary_metric').value),
-                status_descriptor: document.getElementById('status_descriptor').value,
-                is_critical_flag: document.getElementById('is_critical').checked
-            };
-
-            try {
-                const res = await fetch('/api/audit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const data = await res.json();
-                consoleEl.innerText = JSON.stringify(data, null, 2);
-                document.getElementById('m-tasks').innerText = parseInt(document.getElementById('m-tasks').innerText) + 1;
-                document.getElementById('m-audit').innerText = parseInt(document.getElementById('m-audit').innerText) + 1;
-            } catch (err) {
-                consoleEl.innerText = "// Offline / Simulation Output:\n" + JSON.stringify({
-                    dossier_id: "DOSSIER-SIM-" + Math.floor(Math.random()*10000),
-                    system: "tb-drug-resistance-engine",
-                    domain: "Clinical & Cryptographic AI",
-                    task_id: payload.task_id,
-                    overall_urgency: payload.is_critical_flag ? "CRITICAL_STAT_PANIC" : "ELEVATED_RISK",
-                    integrity_status: "DISCORDANT_ANOMALY",
-                    alerts: [
-                        { worker: "InvariantQCWorker", alert: "Primary metric exceeds upper reference bound" },
-                        { worker: "SafetyEscalationWorker", alert: "Critical emergency interlock flag active" }
-                    ],
-                    audit_hash: "HMAC_SHA256_e83f9a72b941d6c381f9"
-                }, null, 2);
-            }
-        }
-    </script>
-</body>
-</html>
+<main>
+<header>
+<h1>TB drug-resistance classification</h1>
+<p>Deterministic, local-in-browser Python interpretation of manually entered drug-susceptibility test (DST) results.</p>
+</header>
+<div class="notice" role="note"><strong>Research / education only — not clinical decision support.</strong>
+A resistance category is not a treatment decision. Missing test results remain unknown. Do not enter patient identifiers. Confirm all findings against laboratory DST, mutation catalogues, and current WHO guidance with an experienced TB clinician. No regimen or dose is generated here.</div>
+<div class="layout">
+<section class="panel" aria-labelledby="inputheading">
+<h2 id="inputheading">Susceptibility results</h2>
+<p>Set each result to resistant (R), susceptible (S), or unknown/not tested (U). Default is U.</p>
+<div class="fields" id="fields"></div>
+<div class="actions"><button id="analyze" type="button" disabled>Analyze</button><button id="sample" class="secondary" type="button">Example: MDR-TB</button><button id="reset" class="secondary" type="button">Clear</button></div>
+<p id="status" role="status" aria-live="polite">Loading Python runtime…</p>
+</section>
+<section class="panel" aria-labelledby="resultheading">
+<h2 id="resultheading">Classification result</h2>
+<div id="summary" aria-live="polite">No analysis yet</div>
+<div id="details">Results will appear here after analysis.</div>
+<div class="actions"><button id="download" type="button" class="secondary" disabled>Download JSON</button></div>
+<details><summary>Technical information</summary><p>Uses the repository's unmodified Python classifier module at runtime via Pyodide. No clinical advice, inference model, API call, account, or backend is used. The Pyodide runtime itself loads from an external CDN; entered DST values are processed locally in the browser.</p></details>
+</section>
+</div>
+<footer>Classification uses WHO 2021 MDR/RR-TB, pre-XDR-TB and XDR-TB definitions. Current treatment guidelines: <a href="https://www.who.int/publications/i/item/9789240125124" rel="noopener noreferrer">WHO Module 4 (2026)</a>. <a href="https://github.com/abusuraihsakhri/tb-drug-resistance-agent" rel="noopener noreferrer">Source code</a>.</footer>
+</main>
+<script src="https://cdn.jsdelivr.net/pyodide/v0.27.7/full/pyodide.js"></script>
+<script>
+"use strict";
+const drugs=[["isoniazid","Isoniazid (INH)"],["rifampicin","Rifampicin (RIF)"],["pyrazinamide","Pyrazinamide (PZA)"],["ethambutol","Ethambutol (EMB)"],["streptomycin","Streptomycin (SM)"],["moxifloxacin","Moxifloxacin (FQ)"],["levofloxacin","Levofloxacin (FQ)"],["bedaquiline","Bedaquiline (BDQ)"],["linezolid","Linezolid (LZD)"]];
+const fields=document.querySelector("#fields"),status=document.querySelector("#status"),summary=document.querySelector("#summary"),details=document.querySelector("#details");
+let pyodide=null,lastResult=null;
+for(const [id,name] of drugs){
+  const wrap=document.createElement("div");wrap.className="field";
+  const label=document.createElement("label");label.htmlFor=id;label.textContent=name;
+  const select=document.createElement("select");select.id=id;
+  for(const [value,display] of [["U","U — unknown"],["S","S — susceptible"],["R","R — resistant"]]){
+    const option=document.createElement("option");option.value=value;option.textContent=display;select.append(option);
+  }
+  wrap.append(label,select);fields.append(wrap);
+}
+function renderResult(result){
+  const c=result.classification;
+  summary.textContent=c.resistance_category.replaceAll("_"," ");
+  const parts=[c.subcategory||"", "Clinical significance label: "+c.clinical_significance,"Unknown first-line drugs: "+(c.untested_first_line_drugs.length?c.untested_first_line_drugs.join(", "):"none"),"Resistant first-line drugs: "+c.resistant_drug_count];
+  if(c.incomplete_first_line_dst)parts.push("CAUTION: First-line DST is incomplete. Susceptibility cannot be assumed.");
+  if(result.alerts.length)parts.push("Review flags: "+result.alerts.map(a=>a.type).join(", "));
+  details.textContent=parts.join("\n\n");
+  document.querySelector("#download").disabled=false;
+}
+document.querySelector("#sample").addEventListener("click",()=>{
+  for(const [id] of drugs)document.getElementById(id).value="U";
+  document.getElementById("isoniazid").value="R";
+  document.getElementById("rifampicin").value="R";
+});
+document.querySelector("#reset").addEventListener("click",()=>{
+  for(const [id] of drugs)document.getElementById(id).value="U";
+  summary.textContent="No analysis yet";details.textContent="Results will appear here after analysis.";
+  lastResult=null;document.querySelector("#download").disabled=true;
+});
+document.querySelector("#analyze").addEventListener("click",async()=>{
+  if(!pyodide)return;
+  const susceptibility=Object.fromEntries(drugs.map(([id])=>[id,document.getElementById(id).value]));
+  status.textContent="Running local classification…";
+  try{
+    pyodide.globals.set("input_json",JSON.stringify(susceptibility));
+    const output=await pyodide.runPythonAsync("import json, tb_resistance\njson.dumps(tb_resistance.analyze_tb_resistance(json.loads(input_json)))");
+    lastResult=JSON.parse(output);
+    renderResult(lastResult);status.textContent="Analysis completed locally.";
+  }catch(error){status.textContent="Analysis error: "+String(error);summary.textContent="No valid result";details.textContent="Check input values and retry.";lastResult=null;}
+});
+document.querySelector("#download").addEventListener("click",()=>{
+  if(!lastResult)return;
+  const blob=new Blob([JSON.stringify({classification:lastResult.classification,alerts:lastResult.alerts},null,2)],{type:"application/json"});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement("a");a.href=url;a.download="tb-resistance-classification.json";a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
+});
+(async()=>{
+  try{
+    if(typeof loadPyodide!=="function")throw Error("Python runtime script was not available");
+    pyodide=await loadPyodide({indexURL:"https://cdn.jsdelivr.net/pyodide/v0.27.7/full/"});
+    const response=await fetch("./tb_resistance.py");
+    if(!response.ok)throw Error("Python module missing (HTTP "+response.status+")");
+    const code=await response.text();
+    pyodide.FS.writeFile("/home/pyodide/tb_resistance.py",code);
+    await pyodide.runPythonAsync("import tb_resistance");
+    document.querySelector("#analyze").disabled=false;status.textContent="Python runtime ready. No data has been submitted.";
+  }catch(error){status.textContent="Unable to initialize browser Python: "+String(error)+". Check connectivity and reload.";}
+})();
+</script>
+</body></html>
