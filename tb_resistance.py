@@ -534,7 +534,8 @@ def get_who_regimen(resistance_category: str,
         "Do not use to prescribe, dose or select a regimen. Consult current WHO "
         "guidance, complete DST and a qualified TB specialist."
     )
-    return regimen
+    # Put the safety warning first in JSON/CLI output.
+    return {"safety_notice": regimen["safety_notice"], **regimen}
 
 
 # ─── Full TB Resistance Analysis ─────────────────────────────────────────────
