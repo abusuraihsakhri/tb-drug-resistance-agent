@@ -2,7 +2,7 @@
   "openapi": "3.1.0",
   "info": {
     "title": "Tb Drug Resistance Engine API",
-    "description": "Enterprise Distributed Component Platform (Clinical & Cryptographic AI) adhering to CAP / CLSI / NIST Standards.",
+    "description": "Generic numerical demonstration API; not clinically validated and not authenticated.",
     "version": "3.0.0-ENTERPRISE",
     "contact": {
       "name": "Dr. Abu Suraih Sakhri",
@@ -22,10 +22,10 @@
     },
     "/metrics": {
       "get": {
-        "summary": "Prometheus operational metrics",
+        "summary": "Demonstration counters in JSON",
         "responses": {
           "200": {
-            "description": "Prometheus text metrics"
+            "description": "JSON counters (not Prometheus text)"
           }
         }
       }
@@ -69,14 +69,14 @@
         },
         "responses": {
           "200": {
-            "description": "Consensus dossier with HMAC signature"
+            "description": "Generic threshold dossier with in-memory HMAC chain reference"
           }
         }
       }
     },
     "/api/chat": {
       "post": {
-        "summary": "Air-gapped supervisory conversational assistant",
+        "summary": "Deterministic mock response",
         "requestBody": {
           "content": {
             "application/json": {
