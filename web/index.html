@@ -115,7 +115,7 @@ document.querySelector("#download").addEventListener("click",()=>{
     if(!response.ok)throw Error("Python module missing (HTTP "+response.status+")");
     const code=await response.text();
     pyodide.FS.writeFile("/home/pyodide/tb_resistance.py",code);
-    await pyodide.runPythonAsync("import tb_resistance");
+    await pyodide.runPythonAsync("import sys; sys.path.insert(0, '/home/pyodide'); import tb_resistance");
     document.querySelector("#analyze").disabled=false;status.textContent="Python runtime ready. No data has been submitted.";
   }catch(error){status.textContent="Unable to initialize browser Python: "+String(error)+". Check connectivity and reload.";}
 })();
