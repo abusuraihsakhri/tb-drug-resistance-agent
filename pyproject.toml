@@ -7,7 +7,7 @@ name = "tb-drug-resistance-engine"
 version = "2.0.0"
 description = "Research-only tuberculosis DST resistance classification and demonstrations"
 readme = "README.md"
-authors = [{ name = "Dr. Abu Suraih Sakhri", email = "abusuraih@example.com" }]
+authors = [{ name = "Dr. Abu Suraih Sakhri" }]
 license = { text = "MIT" }
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -25,6 +25,7 @@ test = ["pytest>=8,<10"]
 
 [project.scripts]
 tb-drug-resistance-engine = "tb_drug_resistance_agent.cli:main"
+tb-resistance = "tb_resistance:main"
 
 [project.urls]
 Homepage = "https://github.com/abusuraihsakhri/tb-drug-resistance-agent"
